@@ -14,43 +14,53 @@
  */
 
 'use strict';
-//import * as admin from 'firebase-admin';
-// var serviceAccount = require('path/to/serviceAccountKey.json');
 
-// [START functions_helloworld_pubsub]
-/**
- * Background Cloud Function to be triggered by Pub/Sub.
- * This function is exported by index.js, and executed when
- * the trigger topic receives a message.
- *
- * @param {object} event The Cloud Functions event.
- * @param {function} callback The callback function.
- */
-exports.helloPubSub = (event, callback) => {
+exports.saveMessage = (event, callback) => {
   const pubsubMessage = event.data;
-  const name = pubsubMessage.data
+  //save(Buffer.from(pubsubMessage.data, 'base64').toString());
+  const message = pubsubMessage.data
     ? Buffer.from(pubsubMessage.data, 'base64').toString()
     : 'World';
+  const Firestore = require('@google-cloud/firestore');
 
-  console.log(`Hello, ${name}!`);
+  const firestore = new Firestore({
+    projectId: 'iot-final-8b2e0',
+  });
+
+  const document = firestore.doc('messages/Mymessages');
+
+  // Enter new data into the document.
+  document.set({
+    title: 'Welcome to Firestore',
+    body: message
+  });
 
   callback();
-};
-// [END functions_helloworld_pubsub]
+}
+function save(message) {
+  saveToFireStore(message);
+  //TODO: Parse the message and determine where to save it : fireStore 
+}
 
-// exports.saveMessageToDb = (event, callback) => {
-//   admin.initializeApp({
-//     // credential: admin.credential.cert(serviceAccount),
-//     credential: admin.credential.applicationDefault(),
-//     databaseURL: 'https://<IOT-final>.firebaseio.com'
-//   });
-//   var db = admin.firestore();
+function saveToFireStore(message) {
+  const Firestore = require('@google-cloud/firestore');
 
-//   const pubsubMessage = event.data;
-//   const name = pubsubMessage.data
-//     ? Buffer.from(pubsubMessage.data, 'base64').toString()
-//     : 'World';
-//   // console.log(`Hello, ${name}!`)'
-//   db.collection('try').doc('try').set(name);
-//   callback();
-// };
+  const firestore = new Firestore({
+    projectId: 'iot-final-8b2e0',
+  });
+
+  const document = firestore.doc('posts/intro-to-firestore');
+
+  // Enter new data into the document.
+  document.set({
+    title: 'Welcome to Firestore',
+    body: 'Hello World'
+  });
+
+  // TODO :create the document tree according to message
+}
+
+function saveToStorage(message) {
+  // TODO
+}
+
