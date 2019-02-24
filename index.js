@@ -16,51 +16,42 @@
 'use strict';
 
 exports.saveMessage = (event, callback) => {
+
+  function save(message) {
+    saveToFireStore(message);
+    //TODO: Parse the message and determine where to save it : fireStore 
+  }
+
+  function saveToFireStore(message) {
+    const Firestore = require('@google-cloud/firestore');
+
+    const firestore = new Firestore({
+      projectId: 'iot-final-8b2e0',
+    });
+
+    const document = firestore.doc('messages/Mymessages');
+
+    // Enter new data into the document.
+    document.set({
+      title: 'Welcome to Firestore',
+      body: message
+    });
+
+    // TODO :create the document tree according to message
+  }
+
+  function saveToStorage(message) {
+    // TODO
+  }
+
   const pubsubMessage = event.data;
   //save(Buffer.from(pubsubMessage.data, 'base64').toString());
   const message = pubsubMessage.data
     ? Buffer.from(pubsubMessage.data, 'base64').toString()
     : 'World';
-  const Firestore = require('@google-cloud/firestore');
 
-  const firestore = new Firestore({
-    projectId: 'iot-final-8b2e0',
-  });
-
-  const document = firestore.doc('messages/Mymessages');
-
-  // Enter new data into the document.
-  document.set({
-    title: 'Welcome to Firestore',
-    body: message
-  });
+  save(message);
 
   callback();
-}
-function save(message) {
-  saveToFireStore(message);
-  //TODO: Parse the message and determine where to save it : fireStore 
-}
-
-function saveToFireStore(message) {
-  const Firestore = require('@google-cloud/firestore');
-
-  const firestore = new Firestore({
-    projectId: 'iot-final-8b2e0',
-  });
-
-  const document = firestore.doc('posts/intro-to-firestore');
-
-  // Enter new data into the document.
-  document.set({
-    title: 'Welcome to Firestore',
-    body: 'Hello World'
-  });
-
-  // TODO :create the document tree according to message
-}
-
-function saveToStorage(message) {
-  // TODO
 }
 
