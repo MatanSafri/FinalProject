@@ -19,25 +19,60 @@ exports.saveMessage = (event, callback) => {
 
   function save(message) {
     saveToFireStore(message);
-    //TODO: Parse the message and determine where to save it : fireStore 
+    //TODO: Parse the message and determine where to save it : fireStore or storage
   }
 
   function saveToFireStore(message) {
     const Firestore = require('@google-cloud/firestore');
 
+    // json dot annotation
+    //var dot = require('dot-object');
+
+    // unique id generator
+    const crypto = require("crypto");
+    const id = crypto.randomBytes(16).toString("hex");
+
     const firestore = new Firestore({
       projectId: 'iot-final-8b2e0',
     });
 
-    const document = firestore.doc('messages/Mymessages');
+    var messageObj = JSON.parse(message);
 
-    // Enter new data into the document.
-    document.set({
-      title: 'Welcome to Firestore',
-      body: message
+
+    var systemName = messageObj.system;
+    var dataArray = messageObj.data;
+
+    // var systemName = dot.pick('system', message);
+    // var dataArray = dot.pick('data', message);
+    console.log(message);
+    console.log(messageObj);
+    console.log(systemName);
+    console.log(dataArray);
+
+    // foreach data entry create a new document
+    dataArray.forEach(function (data) {
+
+      // create a unique id for this data entry
+      const document = firestore.collection('systems').doc(systemName).collection('data').doc(id);
+
+      // Enter new data into the document.
+      document.set({
+        device_id: messageObj.device_id,
+        device_type: messageObj.device_type,
+        time: data.time,
+        type: data.type,
+        fieldName: data.fieldName,
+        data: data.data,
+      });
+      // document.set({
+      //   device_id: dot.pick('device_id', message),
+      //   device_type: dot.pick('device_type', message),
+      //   time: dot.pick('time', data),
+      //   type: dot.pick('type', data),
+      //   fieldName: dot.pick('fieldName', data),
+      //   data: dot.pick('data', data),
+      // });
     });
-
-    // TODO :create the document tree according to message
   }
 
   function saveToStorage(message) {
@@ -48,9 +83,10 @@ exports.saveMessage = (event, callback) => {
   //save(Buffer.from(pubsubMessage.data, 'base64').toString());
   const message = pubsubMessage.data
     ? Buffer.from(pubsubMessage.data, 'base64').toString()
-    : 'World';
+    : '';
 
-  save(message);
+  if (message != '')
+    save(message);
 
   callback();
 }

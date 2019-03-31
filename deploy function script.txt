@@ -1,0 +1,1 @@
+gcloud functions deploy saveMessage --runtime nodejs6 --trigger-topic Test
