@@ -29,8 +29,8 @@ exports.saveMessage = (event, callback) => {
     //var dot = require('dot-object');
 
     // unique id generator
-    const crypto = require("crypto");
-    const id = crypto.randomBytes(16).toString("hex");
+    //const crypto = require("crypto");
+    //const id = crypto.randomBytes(16).toString("hex");
 
     const firestore = new Firestore({
       projectId: 'iot-final-8b2e0',
@@ -53,13 +53,15 @@ exports.saveMessage = (event, callback) => {
     dataArray.forEach(function (data) {
 
       // create a unique id for this data entry
-      const document = firestore.collection('systems').doc(systemName).collection('data').doc(id);
+      const systemDocument = firestore.collection('systems').doc(systemName);
+      systemDocument.set({ name: systemName });
+      const dataDocument = systemDocument.collection('data').doc();
 
       // Enter new data into the document.
-      document.set({
+      dataDocument.set({
         device_id: messageObj.device_id,
         device_type: messageObj.device_type,
-        time: data.time,
+        time: Firestore.FieldValue.serverTimestamp(),//data.time,
         type: data.type,
         fieldName: data.fieldName,
         data: data.data,
