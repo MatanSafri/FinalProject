@@ -24,17 +24,21 @@ exports.saveMessage = (event, callback) => {
 
   function saveToFireStore(message) {
     const Firestore = require('@google-cloud/firestore');
-
-    // json dot annotation
-    //var dot = require('dot-object');
-
-    // unique id generator
-    //const crypto = require("crypto");
-    //const id = crypto.randomBytes(16).toString("hex");
-
     const firestore = new Firestore({
       projectId: 'iot-final-8b2e0',
     });
+
+    const admin = require('firebase-admin');
+    const functions = require('firebase-functions');
+
+    try {
+      admin.initializeApp(functions.config().firebase);
+
+    } catch (error) {
+      console.error('Firebase initialization error', error.stack)
+    }
+
+
 
     var messageObj = JSON.parse(message);
 
@@ -49,32 +53,57 @@ exports.saveMessage = (event, callback) => {
     console.log(systemName);
     console.log(dataArray);
 
-    // foreach data entry create a new document
-    dataArray.forEach(function (data) {
 
-      // create a unique id for this data entry
-      const systemDocument = firestore.collection('systems').doc(systemName);
-      systemDocument.set({ name: systemName });
-      const dataDocument = systemDocument.collection('data').doc();
 
-      // Enter new data into the document.
-      dataDocument.set({
-        device_id: messageObj.device_id,
-        device_type: messageObj.device_type,
-        time: Firestore.FieldValue.serverTimestamp(),//data.time,
-        type: data.type,
-        fieldName: data.fieldName,
-        data: data.data,
-      });
-      // document.set({
-      //   device_id: dot.pick('device_id', message),
-      //   device_type: dot.pick('device_type', message),
-      //   time: dot.pick('time', data),
-      //   type: dot.pick('type', data),
-      //   fieldName: dot.pick('fieldName', data),
-      //   data: dot.pick('data', data),
-      // });
-    });
+    // create a unique id for this data entry
+    //const systemDocument = firestore.collection('systems').doc(systemName);
+
+    var systemRef = admin.firestore().collection('systems').doc(systemName);
+
+    // check if the system collection exists - if not create it 
+    systemRef.get().then(
+      doc => {
+        if (!doc.exists) {
+          systemRef.set({
+            name: systemName, devices: [], device_types: [], field_names: [],
+          });
+        }
+
+        const dataDocument = systemRef.collection('data').doc();
+
+        //var systemRef = admin.firestore().collection('systems').doc(systemName);
+
+        systemRef.update({
+          devices: admin.firestore.FieldValue.arrayUnion(messageObj.device_id)
+        });
+
+        systemRef.update({
+          device_types: admin.firestore.FieldValue.arrayUnion(messageObj.device_type)
+        });
+
+        // foreach data entry create a new document
+        dataArray.forEach(function (data) {
+
+          systemRef.update({
+            field_names: admin.firestore.FieldValue.arrayUnion(data.fieldName)
+          });
+
+
+          // Enter new data into the document.
+          dataDocument.set({
+            device_id: messageObj.device_id,
+            device_type: messageObj.device_type,
+            system_name: systemName,
+            time: data.time,
+            type: data.type,
+            field_name: data.fieldName,
+            data: data.data,
+          });
+        });
+      }
+    );
+
+
   }
 
   function saveToStorage(message) {
