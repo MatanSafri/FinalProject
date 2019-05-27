@@ -88,16 +88,15 @@ exports.saveMessage = (event, callback) => {
             field_names: admin.firestore.FieldValue.arrayUnion(data.fieldName)
           });
 
-
           // Enter new data into the document.
           dataDocument.set({
             device_id: messageObj.device_id,
             device_type: messageObj.device_type,
             system_name: systemName,
-            time: data.time,
+            time: new Date(data.time),
             type: data.type,
             field_name: data.fieldName,
-            data: data.data,
+            data: (data.type == "number" ? parseFloat(data.data) : data.data),
           });
         });
       }
