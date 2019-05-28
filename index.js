@@ -23,10 +23,10 @@ exports.saveMessage = (event, callback) => {
   }
 
   function saveToFireStore(message) {
-    const Firestore = require('@google-cloud/firestore');
-    const firestore = new Firestore({
-      projectId: 'iot-final-8b2e0',
-    });
+    //const Firestore = require('@google-cloud/firestore');
+    // const firestore = new Firestore({
+    //   projectId: 'iot-final-8b2e0',
+    // });
 
     const admin = require('firebase-admin');
     const functions = require('firebase-functions');
@@ -39,7 +39,6 @@ exports.saveMessage = (event, callback) => {
     }
 
 
-
     var messageObj = JSON.parse(message);
 
 
@@ -48,10 +47,10 @@ exports.saveMessage = (event, callback) => {
 
     // var systemName = dot.pick('system', message);
     // var dataArray = dot.pick('data', message);
-    console.log(message);
-    console.log(messageObj);
-    console.log(systemName);
-    console.log(dataArray);
+    // console.log(message);
+    // console.log(messageObj);
+    // console.log(systemName);
+    // console.log(dataArray);
 
 
 
@@ -88,8 +87,7 @@ exports.saveMessage = (event, callback) => {
             field_names: admin.firestore.FieldValue.arrayUnion(data.fieldName)
           });
 
-          // Enter new data into the document.
-          dataDocument.set({
+          var fireStoreDoc = {
             device_id: messageObj.device_id,
             device_type: messageObj.device_type,
             system_name: systemName,
@@ -97,7 +95,14 @@ exports.saveMessage = (event, callback) => {
             type: data.type,
             field_name: data.fieldName,
             data: (data.type == "number" ? parseFloat(data.data) : data.data),
-          });
+          }
+
+          if (data.hasOwnProperty('location')) {
+            fireStoreDoc.location = new admin.firestore.GeoPoint(data.location.latitude, data.location.longitude);
+          }
+
+          // Enter new data into the document.
+          dataDocument.set(fireStoreDoc);
         });
       }
     );
